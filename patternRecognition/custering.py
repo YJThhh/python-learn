@@ -93,6 +93,55 @@ class Clustering(object):
             updateD()
             _,a,b=findmin()
             cluster(a,b)
+
+    def DecompositionClustering(self):
+        G1, G2 = [item for item in PointData[range(1, self.data.__len__())]], []
+        def MeanVariance(g1, g2):
+            N1, N2 = g1.__len__(), g2.__len__()
+            N = g1.__len__() + g2.__len__()
+            return ((N1 * N2) / N) * (
+                np.dot(np.mean(g1,axis=0) - np.mean(g2,axis=0), np.transpose(np.mean(g1,axis=0) - np.mean(g2,axis=0))))
+        def calculateE(G1,G2):
+            E = []
+            for i, item in enumerate(G1):
+                import copy
+                g1, g2 = copy.deepcopy(G1), copy.deepcopy(G2)
+                g2.append(item)
+                g1.pop(i)
+                E.append((i, MeanVariance(g1, g2)))
+            E.sort(key=lambda x: x[1])
+            return E[-1]
+
+        def outputPlot():
+            plt.figure(figsize=(8, 8))
+            plt.xlim(-10, 10)
+            plt.ylim(-10, 10)
+            color = [
+                'red',
+                'black',
+                'blue',
+                'pink',
+                'green',
+                'purple',
+                'magenta'
+            ]
+
+            for idx, item_class in enumerate([G1,G2]):
+                X, Y = [], []
+                for item_data in item_class:
+                    X.append(item_data[0])
+                    Y.append(item_data[1])
+                plt.scatter(X, Y, color=color[idx])
+            plt.show()
+
+        E = 0
+        while E <= calculateE(G1,G2)[1]:
+            E = calculateE(G1, G2)[1]
+            G2.append(G1[calculateE(G1,G2)[0]])
+            G1.pop(calculateE(G1,G2)[0])
+
+        outputPlot()
+
 if __name__ == '__main__':#满足 脚本直接执行
     '''
     分解聚类算法设计
@@ -111,4 +160,6 @@ if __name__ == '__main__':#满足 脚本直接执行
                           ([-1, -1]), ([-1, -3]), ([-3, -5])])
     print('现在的样本为\n{}'.format(PointData[range(1, SampleNum + 1)]))
     Clustering1=Clustering(PointData)
-    Clustering1.SystematicClustering2D(7)
+    #Clustering1.SystematicClustering2D(2)
+    Clustering1.DecompositionClustering()
+
