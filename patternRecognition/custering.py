@@ -142,6 +142,82 @@ class Clustering(object):
 
         outputPlot()
 
+    def Kmeans(self):
+
+        def compute_euclidean_distance(point, centroid):
+            return np.sqrt(np.sum((point - centroid) ** 2))
+
+        def assign_label_cluster(distance, data_point, centroids):
+            index_of_minimum = min(distance, key=distance.get)
+            return [index_of_minimum, data_point, centroids[index_of_minimum]]
+
+        def compute_new_centroids(cluster_label, centroids):
+            return np.array(cluster_label + centroids) / 2
+
+        def iterate_k_means(data_points, centroids, total_iteration):
+            label = []
+            cluster_label = []
+            total_points = len(data_points)
+            k = len(centroids)
+
+            for iteration in range(0, total_iteration):
+                for index_point in range(0, total_points):
+                    distance = {}
+                    for index_centroid in range(0, k):
+                        distance[index_centroid] = compute_euclidean_distance(data_points[index_point],
+                                                                              centroids[index_centroid])
+                    label = assign_label_cluster(distance, data_points[index_point], centroids)
+                    centroids[label[0]] = compute_new_centroids(label[1], centroids[label[0]])
+
+                    if iteration == (total_iteration - 1):
+                        cluster_label.append(label)
+
+            return [cluster_label, centroids]
+
+        def print_label_data(result):
+            print("Result of k-Means Clustering: \n")
+            for data in result[0]:
+                print("data point: {}".format(data[1]))
+                print("cluster number: {} \n".format(data[0]))
+            print("Last centroids position: \n {}".format(result[1]))
+
+        def outputPlot(plot):
+
+            plt.figure(figsize=(8, 8))
+            plt.xlim(-10, 10)
+            plt.ylim(-10, 10)
+            color = [
+                'red',
+                'black',
+                'blue',
+                'pink',
+                'green',
+                'purple',
+                'magenta'
+            ]
+
+            for idx, item_class in enumerate(plot):
+                X, Y = [], []
+                for item_data in item_class:
+                    X.append(item_data[0])
+                    Y.append(item_data[1])
+                plt.scatter(X, Y, color=color[idx])
+            plt.show()
+
+        center=self.data[10:12]
+        total_iteration = 1000
+        [cluster_label, new_centroids] = iterate_k_means(self.data[1:], center, total_iteration)
+        print_label_data([cluster_label, new_centroids])
+        plot=[]
+        for i in range(center.shape[0]):
+            lista=[]
+            for item in cluster_label:
+                if item[0]==i:
+                    lista.append(item[1].tolist())
+            plot.append(lista)
+        outputPlot(plot)
+
+
 if __name__ == '__main__':#满足 脚本直接执行
     '''
     分解聚类算法设计
@@ -158,8 +234,8 @@ if __name__ == '__main__':#满足 脚本直接执行
                           ([-3, 2]), ([-3, 0]), ([-5, 2]),
                           ([1, 1]), ([0, -1]), ([0, -2]),
                           ([-1, -1]), ([-1, -3]), ([-3, -5])])
-    print('现在的样本为\n{}'.format(PointData[range(1, SampleNum + 1)]))
+    #print('现在的样本为\n{}'.format(PointData[range(1, SampleNum + 1)]))
     Clustering1=Clustering(PointData)
     #Clustering1.SystematicClustering2D(2)
-    Clustering1.DecompositionClustering()
+    Clustering1.Kmeans()
 
